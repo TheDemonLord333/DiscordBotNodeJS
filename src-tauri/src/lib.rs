@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tauri::State;
 use tokio::sync::Mutex;
+use urlencoding;
 
 // Datenstrukturen für API-Kommunikation
 #[derive(Debug, Serialize, Deserialize)]
