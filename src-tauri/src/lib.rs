@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tauri::State;
 use tokio::sync::Mutex;
-use urlencoding;
 
 // Datenstrukturen für API-Kommunikation
 #[derive(Debug, Serialize, Deserialize)]
@@ -105,6 +104,17 @@ async fn make_api_request(
     Ok(json)
 }
 
+// Simple URL encoding function
+fn url_encode(input: &str) -> String {
+    input
+        .chars()
+        .map(|c| match c {
+            'A'..='Z' | 'a'..='z' | '0'..='9' | '-' | '_' | '.' | '~' => c.to_string(),
+            _ => format!("%{:02X}", c as u8),
+        })
+        .collect()
+}
+
 // Tauri Commands
 #[tauri::command]
 async fn set_api_config(
@@ -161,8 +171,9 @@ async fn search_users(query: String, state: State<'_, AppState>) -> Result<serde
         .as_ref()
         .ok_or("API not configured")?;
 
-    let url = format!("{}/api/users/search/{}", config.server_url,
-                      urlencoding::encode(&query));
+    // URL-encode the query parameter
+    let encoded_query = url_encode(&query);
+    let url = format!("{}/api/users/search/{}", config.server_url, encoded_query);
 
     make_api_request("GET", &url, &config.api_secret, None).await
 }
